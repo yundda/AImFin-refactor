@@ -1,0 +1,13 @@
+*.rdb
+package.json
+package-lock.json
+backend/.env*
+backend/venv/
+
+frontend/.env*(example 제외)
+
+**/venv/, **/.venv/
+**/node_modules/
+*/venv/, */.venv/
+__pycache__/, *.pyc
+.vscode/

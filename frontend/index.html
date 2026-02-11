@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/src/assets/images/AImFIN_logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AImFIN - AI Portfolio Service</title>
+
+  <!-- ✅ Spoqa Han Sans Neo 폰트 불러오기 -->
+  <link href='//spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ✅ Tailwind CSS 기본 폰트(sans)를 Spoqa Han Sans Neo로 교체 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Spoqa Han Sans Neo', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    /* Tailwind 클래스가 없는 요소까지 확실하게 적용하기 위한 전역 설정 */
+    body {
+      font-family: 'Spoqa Han Sans Neo', 'sans-serif';
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
