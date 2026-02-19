@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# DB
+db.sqlite3
+dump.rdb
+
+# OS
+.DS_Store
+
+# IDE
+.vscode
+.idea

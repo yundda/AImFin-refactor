@@ -1,0 +1,103 @@
+# AImFin Production Baseline (Docker + Nginx + HTTPS + Security)
+# [Modified based on User Feedback]
+# 1. Network: public-net (Nginx) / private-net (Backend, DB, Redis) 분리
+# 2. Security: DB/Redis 포트 미노출 (Attack Surface 축소)
+# 3. Operations: Source Code 마운트 제거 (Build-in), Healthcheck 강화
+
+services:
+  # [Public Tier] Nginx Reverse Proxy
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: aimfin-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./cert:/etc/nginx/cert:ro
+      # static/media: Nginx가 직접 서빙 (Read-only)
+      - static-volume:/app/static:ro
+      - media-volume:/app/media:ro
+    networks:
+      - public-net
+      - private-net
+    restart: always
+
+  # [App Tier] Django Backend
+  backend:
+    # 운영에서는 build 대신 DockerHub 이미지 pull 권장
+    # image: <DOCKERHUB_ID>/aimfin-backend:1.0.0
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aimfin-backend
+    env_file:
+      - ./env/prod.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=aim_fin.settings.prod
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      # 코드 마운트 X (운영형: 이미지에 소스 포함)
+      # 정적 파일 저장을 위한 볼륨 마운트 (rw)
+      - static-volume:/app/static
+      - media-volume:/app/media
+    networks:
+      - private-net
+    restart: always
+    # Gunicorn 실행 (migrate, collectstatic은 entrypoint에서 환경변수로 제어)
+    command: gunicorn aim_fin.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60
+
+  # [Data Tier] Database (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: aimfin-db
+    env_file:
+      - ./env/prod.db.env
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - private-net
+    restart: always
+    # [Security] 포트 미노출: 외부/호스트 네트워크 경유 접근 차단
+    # ports: 없음
+
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # [Data Tier] Redis
+  redis:
+    image: redis:7.4-alpine
+    container_name: aimfin-redis
+    networks:
+      - private-net
+    restart: always
+    # ports: 없음
+
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  public-net:
+    driver: bridge
+  private-net:
+    driver: bridge
+    internal: true # 외부 인터넷 연결 차단 (보안 강화)
+
+volumes:
+  static-volume:
+  media-volume:
+  db-data:

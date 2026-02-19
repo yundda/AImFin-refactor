@@ -11,10 +11,10 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.DeleteModel(
-            name='PortfolioAllocation',
+            name='PortfolioAsset',
         ),
         migrations.DeleteModel(
-            name='PortfolioAsset',
+            name='PortfolioAllocation',
         ),
         migrations.DeleteModel(
             name='PortfolioMetrics',

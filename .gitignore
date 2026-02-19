@@ -11,3 +11,10 @@ frontend/.env*(example 제외)
 */venv/, */.venv/
 __pycache__/, *.pyc
 .vscode/
+
+# Environment Variables
+env/
+
+# local certs (do not commit)
+cert/*.crt
+cert/*.key
