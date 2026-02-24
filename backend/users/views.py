@@ -13,6 +13,19 @@ from rest_framework import status
 from .serializers import RegisterSerializer
 from .models import SurveyResult  # 설문 이력 카운트용
 
+from django.middleware.csrf import get_token
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+class GetCSRFTokenView(APIView):
+    permission_classes = [permissions.AllowAny]
+    
+    @method_decorator(ensure_csrf_cookie)
+    def get(self, request):
+        # ensure_csrf_cookie 데코레이터가 응답에 csrftoken 쿠키를 강제로 포함시킴
+        # HTTPONLY 설정 시에도 쿠키는 세팅되지만 JS로 접근 불가하므로 JSON으로도 전달
+        return Response({"csrftoken": get_token(request)}, status=status.HTTP_200_OK)
+
 User = get_user_model()
 
 @api_view(["POST"])
@@ -24,33 +37,39 @@ def signup(request):
 
 class CustomLoginView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
-        # 기본 JWT 발급(JSON: access/refresh)
         response = super().post(request, *args, **kwargs)
-
-        # # 아래 쿠키 세팅은 남겨둬도 localStorage 방식에 지장 없음(프론트는 JSON만 사용)
-        # access_token = response.data.get("access")
-        # refresh_token = response.data.get("refresh")
-        # if access_token and refresh_token:
-        #     from django.conf import settings
-        #     is_secure = not settings.DEBUG
-        #     samesite = "None" if is_secure else "Lax"
-        #     response.set_cookie("access", access_token, httponly=True, secure=is_secure, samesite=samesite, path="/")
-        #     response.set_cookie("refresh", refresh_token, httponly=True, secure=is_secure, samesite=samesite, path="/")
+        
+        access_token = response.data.get("access")
+        refresh_token = response.data.get("refresh")
+        
+        if access_token and refresh_token:
+            from django.conf import settings
+            is_secure = not settings.DEBUG
+            samesite = "None" if is_secure else "Lax"
+            
+            # 쿠키에 토큰 설정
+            response.set_cookie("access", access_token, httponly=True, secure=is_secure, samesite=samesite, path="/")
+            response.set_cookie("refresh", refresh_token, httponly=True, secure=is_secure, samesite=samesite, path="/")
+            
+            # JSON 바디에서 토큰 제거 (보안 강화 및 혼재 방지)
+            del response.data["access"]
+            del response.data["refresh"]
+            response.data["message"] = "Login successful"
+            
         return response
 
 class LogoutView(APIView):
     permission_classes = [permissions.AllowAny]
     def post(self, request):
-        refresh = request.data.get("refresh")
+        # 쿠키에서 리프레시 토큰 추출 시도
+        refresh = request.COOKIES.get("refresh") or request.data.get("refresh")
         if refresh:
             try:
                 token = RefreshToken(refresh)
                 token.blacklist()
-            except TokenError:
-                pass
             except Exception:
                 pass
-        resp = Response(status=status.HTTP_205_RESET_CONTENT)
+        resp = Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
         resp.delete_cookie("access")
         resp.delete_cookie("refresh")
         return resp
@@ -58,21 +77,23 @@ class LogoutView(APIView):
 class CookieRefreshView(APIView):
     def post(self, request):
         from django.conf import settings
-        refresh = request.COOKIES.get("refresh") or request.data.get("refresh")
+        refresh = request.COOKIES.get("refresh")
         if not refresh:
-            return Response({"detail": "no refresh"}, status=400)
+            return Response({"detail": "No refresh token provided"}, status=401)
+            
         try:
             token = RefreshToken(refresh)
             new_access = str(token.access_token)
-            new_refresh = str(token)
+            # 리프레시 토큰 회전(Rotation) 시 새로운 리프레시 토큰 발급 가능
+            # 여기서는 Access만 새로 발급하거나 Rotation 설정에 따라 처리
+            # 기본적으로 access만 새로 쿠키에 구워줌
         except TokenError:
-            return Response({"detail": "invalid refresh"}, status=401)
+            return Response({"detail": "Invalid refresh token"}, status=401)
 
         is_secure = not settings.DEBUG
         samesite = "None" if is_secure else "Lax"
-        resp = Response({"access": new_access, "refresh": new_refresh}, status=200)  # JSON도 함께 반환
+        resp = Response({"message": "Token refreshed"}, status=200)
         resp.set_cookie("access", new_access, httponly=True, samesite=samesite, secure=is_secure, path="/")
-        resp.set_cookie("refresh", new_refresh, httponly=True, samesite=samesite, secure=is_secure, path="/")
         return resp
 
 class ProfileView(APIView):

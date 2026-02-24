@@ -8,10 +8,10 @@ from . import views, views_google, views_kakao, views_survey, views_preference
 
 
 urlpatterns = [
+    path("auth/csrf", views.GetCSRFTokenView.as_view(), name="csrf"),
     path("auth/signup", views.signup, name="register"),
     path("auth/login", views.CustomLoginView.as_view(), name="login"),
-    path("auth/refresh", TokenRefreshView.as_view(), name="refresh"),
-    path("auth/verify", TokenVerifyView.as_view(), name="verify"),
+    path("auth/refresh", views.CookieRefreshView.as_view(), name="refresh"),
     path("auth/logout", views.LogoutView.as_view(), name="logout"),
 
     # 구글 OAuth (서버 주도 + PKCE)
