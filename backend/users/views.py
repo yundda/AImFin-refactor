@@ -29,6 +29,7 @@ class GetCSRFTokenView(APIView):
 User = get_user_model()
 
 @api_view(["POST"])
+@permission_classes([permissions.AllowAny])
 def signup(request):
     ser = RegisterSerializer(data=request.data)
     ser.is_valid(raise_exception=True)
@@ -36,6 +37,8 @@ def signup(request):
     return Response(ser.data, status=status.HTTP_201_CREATED)
 
 class CustomLoginView(TokenObtainPairView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         
@@ -75,6 +78,8 @@ class LogoutView(APIView):
         return resp
 
 class CookieRefreshView(APIView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
     def post(self, request):
         from django.conf import settings
         refresh = request.COOKIES.get("refresh")

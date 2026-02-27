@@ -253,3 +253,9 @@ AI_API_BASE   = env(
     default=f"{GMS_BASE_URL.rstrip('/')}/api.openai.com/v1"
 )
 AI_API_KEY    = env("AI_API_KEY", default=GMS_KEY)
+AI_MOCK_MODE  = env.bool("AI_MOCK_MODE", default=False)
+AI_PROVIDER   = env("AI_PROVIDER", default="openai") # 'openai' or 'gemini'
+
+# Gemini Specific
+GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+GEMINI_MODEL   = env("GEMINI_MODEL", default="gemini-1.5-flash")

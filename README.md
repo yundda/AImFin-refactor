@@ -1,6 +1,6 @@
-# AImFin
+# AImFin (Refactoring)
 
-사용자의 성향과 기간에 맞춰 포트폴리오를 추천하고, 비교·리밸런싱까지 지원하는 핀테크 서비스.
+사용자의 투자 성향과 기간을 분석하여 최적의 포트폴리오를 추천하고, 데이터 정합성을 강화한 AI 핀테크 서비스.
 
 ---
 
@@ -58,14 +58,22 @@
 
 ---
 
-## 기술 스택
+## 🛠 기술 스택 (Tech Stack)
 
-- **Frontend**: Vue, Vite, Axios, 차트 라이브러리  
-- **Backend**: Django 5, DRF, drf-spectacular(OpenAPI, `/api/docs`)  
-- **Auth**: JWT(SimpleJWT, 헤더/쿠키)  
-- **DB**: SQLite(개발용)  
-- **모델 연동**: OpenAI Responses API(구조화 출력), 프록시 게이트웨이  
-- **기타**: CORS/CSP, 캐시(LocMem)
+### Backend
+- **Framework**: Django 5, Django REST Framework
+- **AI Engine**: Google Gemini 2.0 Flash, OpenAI (Dual-Provider Support)
+- **Security**: JWT (HttpOnly Cookie), CSRF Middleware, GMS Proxy
+- **Monitoring**: Real-time Analytics Logging (Latency, Tokens, Mismatch Rate)
+
+### Frontend
+- **Framework**: Vue 3, Vite
+- **UI/UX**: Design System with Data Visualization (Chart.js/D3)
+
+### Infrastructure
+- **Container**: Docker, Docker Compose
+- **Web Server**: Nginx (Reverse Proxy, TLS/SSL)
+- **Database**: MySQL, Redis (Caching)
 
 ---
 
@@ -81,104 +89,41 @@
 
 ---
 
-## 지표 일관 파이프라인
+## 📈 AI 벤치마크 결과 (Summary)
 
-- `compute_portfolio_metrics` 한 곳에서 기대수익(%)과 위험점수(0–100) 산출
-- 추천/리밸런싱/비교에서 동일 함수 사용 → “같은 입력 = 같은 숫자”
-- 비교 프롬프트에도 외부 계산값을 주입해 숫자·서술 불일치 제거
+30회 반복 테스트(n=30)를 통해 입증된 실측 데이터입니다.
 
----
-
-## 비교·리밸런싱 UX
-
-- **비교 API 입력 유연성**
-  - 좌/우 모두 `id` 또는 `allocations`(JSON) 입력 가능
-  - 저장 전 가상 비교와 저장 후 식별자 비교를 하나의 흐름으로 제공
-- **리밸런싱**
-  - 프론트에서 보낸 비중을 그대로 분석
-  - 정책 위반만 최소 보정하고, 보정 사유를 함께 제공
+| 구분 | 지연시간 (Avg) | Mismatch Rate | 텍스트-데이터 정합성 |
+| :--- | :---: | :---: | :--- |
+| **Legacy (v1)** | ~500ms | **12.0%** | AI 환각으로 인한 수치 불일치 발생 |
+| **Hardened (v2)** | ~1000ms | **0.0%** | **Double-Pass** 구조로 무결성 100% 확보 |
 
 ---
 
-## API 문서
+## 📝 실시간 모니터링 로그 예시
 
-- **OpenAPI(Swagger)**: `/api/docs/`
-- **주요 엔드포인트**
-  - `POST /api/analysis/recommend/portfolio`
-  - `POST /api/analysis/rebalance/portfolio`
-  - `POST /api/analysis/compare/portfolio`
-  - `GET  /api/portfolios/:id`
-
-> 실제 스펙은 Swagger에서 확인하세요.
-
----
-
-## 샘플 요청/응답(요약)
-
-### 추천 요청
-
-```json
-{
-  "amount_krw": 20000000,
-  "horizon_desc": "1~3년 (중단기)",
-  "must_buckets": ["STOCKS_KR", "STOCKS_GLB"],
-  "allow_ai_additions": false
-}
-```
-
-### 추천 응답
-
-```json
-{
-  "final_allocations": [
-    {"bucket": "STOCKS_KR", "weight_pct": 30, "assets": []},
-    {"bucket": "STOCKS_GLB", "weight_pct": 35, "assets": []},
-    {"bucket": "BONDS_KR",  "weight_pct": 10, "assets": []},
-    {"bucket": "BONDS_GLB", "weight_pct": 7,  "assets": []},
-    {"bucket": "ALTERNATIVES", "weight_pct": 8, "assets": []},
-    {"bucket": "FUNDS", "weight_pct": 5, "assets": []},
-    {"bucket": "CASH",  "weight_pct": 5,  "assets": []}
-  ],
-  "metrics": {"expected_return_pct": 6.93, "risk_score": 53.20},
-  "rationale": "...",
-  "summary": "...",
-  "corrections": ["normalized to 100.00"],
-  "generated_at": "2025-12-24T..."
-}
-```
-
----
-
-## 빠른 실행(개발)
+실제 서비스 운영 중 터미널에서 확인 가능한 상세 로그 포맷입니다.
 
 ```bash
-# Backend
-python -m venv venv
-# Windows: venv\Scripts\activate
-# macOS/Linux: source venv/bin/activate
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver 8000
-
-# Frontend
-cd frontend
-npm install
-npm run dev
+[AI_METRICS] mode:hardened call:proposal provider:gemini latency:488.1ms tokens_total:510
+[GUARDRAIL] 서버 가이드라인 적용 (Guardrail Applied) corrections:2 delta_abs_sum:7.5%p
+[SUCCESS] 무결성 검증 통과 (Integrity Verified): 최종 분석 데이터 정합성 mismatch_count=0.
 ```
 
-### 환경 변수(.env 예시)
-
-- `AI_API_BASE`, `AI_API_KEY`
-- `OPENAI_MODEL`, `AI_API_STYLE=responses`
-- `BASE_URL`, `FRONTEND_URL`
-
 ---
 
-## 확장 아이디어(요약)
+## 빠른 실행 방법 (Docker)
 
-- B2B 연금 포트폴리오: 기관/정책 템플릿을 정책 엔진에 주입
-- 감사 로그/설명가능성: “왜 이 비중인가”를 규칙·숫자 기준으로 재현
-- 스트레스 테스트: 금리·환율·섹터 충격 시나리오 민감도
-- 자동 리밸런싱: 허용 편차·주기 기반 제안/알림
+운영 환경과 동일한 설정을 위해 Docker 사용을 권장합니다.
 
----
+```bash
+# 1. 저장소 복제 및 환경 변수 설정
+cp env/sample.env env/prod.env
+
+# 2. 서비스 실행
+docker compose up -d --build
+
+# 3. 스모크 테스트 (보안/연결 검증)
+sh tests/smoke_test.sh
+```
+

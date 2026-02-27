@@ -57,18 +57,23 @@ graph TD
 
 ## 3. 실행 및 검증 방법
 
-### 1) 환경 준비
-아래 파일에 시크릿과 DB 접속 정보를 설정합니다.
+### 1) AI 서비스 설정
+백엔드가 AI 엔진(Gemini 2.0 등)과 안전하게 통신하기 위해 아래 변수를 설정합니다.
+* `AI_PROVIDER`: `gemini` 또는 `openai`
+* `GEMINI_API_KEY`: Google AI Studio에서 발급받은 키
+* `GEMINI_MODEL`: `gemini-2.0-flash` (권장)
+* `GMS_BASE_URL`: (GMS Proxy 사용 시) 프록시 서버 주소
 
-* `env/prod.env` (Django 설정/시크릿)
-* `env/prod.db.env` (MySQL 초기화 정보)
+---
 
-> 예: `DJANGO_SECRET_KEY`, `DEBUG`, `DB_HOST`, `DB_USER`, `DB_PASSWORD` 등
+## 4. 운영 단계 검증 (Monitoring Verification)
 
-### 2) 서비스 실행
-터미널에서 아래 명령어를 입력하여 모든 서비스를 가동합니다.
+배포 후 AI 서비스가 정상적으로 '신뢰성 모델'로 동작하는지 확인합니다.
+
+### 1) 실시간 로그 모니터링
+컨테이너 로그에서 `[AI_METRICS]`, `[GUARDRAIL]`, `[SUCCESS]` 태그가 출력되는지 확인하여 AI 호출의 지연시간과 무결성을 점검합니다.
 ```bash
-docker compose up -d --build
+docker compose logs -f backend | grep "\[AI_METRICS\]"
 ```
 
 ### 3) 정상 작동 확인 (스모크 테스트)

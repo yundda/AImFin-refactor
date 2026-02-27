@@ -9,7 +9,7 @@ from assets.models import Asset
 from assets.enums import AssetType  # "STOCKS_KR" 등 7개 버킷 enum(str)라고 가정
 from users.models import RiskProfileCode, User  # CONSERVATIVE 등
 
-# ✅ 공개용: 정규화된 버킷 문자열 목록 (검증/프롬프트/시리얼라이저 공통 기준)
+# 공개용: 정규화된 버킷 문자열 목록 (검증/프롬프트/시리얼라이저 공통 기준)
 BUCKETS: List[str] = [
     "STOCKS_KR", "STOCKS_GLB",
     "BONDS_KR", "BONDS_GLB",
@@ -259,7 +259,7 @@ def get_universe_rules_for(
         "buckets": buckets,
         "policy_summary": policy_summary_text(base),
         "rules": base,  # 내부에서 재활용할 수 있도록 원본 객체도 반환
-        # ➕ 서비스에서 모드 선택에 쓰도록 제공
+        # 서비스에서 모드 선택에 쓰도록 제공
         "allowed_buckets_default": allowed_default,   # 기본: 사용자 선택 버킷
         "allowed_buckets_extended": allowed_extended, # 확장: 전체 7버킷
     }

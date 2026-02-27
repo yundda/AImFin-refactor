@@ -1,0 +1,19 @@
+warning: in the working copy of 'DEPLOY.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'README.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'backend/aim_fin/settings/base.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'backend/analysis/clients/gpt_client.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'backend/analysis/services/recommend.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'backend/portfolios/services/portfolio_rules.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'backend/users/views.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'backend/users/views_google.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'backend/users/views_kakao.py', CRLF will be replaced by LF the next time Git touches it
+DEPLOY.md
+PORTFOLIO_STRATEGY.md
+README.md
+backend/aim_fin/settings/base.py
+backend/analysis/clients/gpt_client.py
+backend/analysis/services/recommend.py
+backend/portfolios/services/portfolio_rules.py
+backend/users/views.py
+backend/users/views_google.py
+backend/users/views_kakao.py

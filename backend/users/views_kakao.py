@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.shortcuts import redirect
 from django.utils.crypto import get_random_string
+from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
@@ -18,6 +19,8 @@ def issue_tokens(user):
     return {"access": str(r.access_token), "refresh": str(r)}
 
 class KakaoStartView(APIView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
     def get(self, request):
         state = get_random_string(32)
         save_nonce(state, "1")
@@ -25,6 +28,8 @@ class KakaoStartView(APIView):
         return redirect(url)
 
 class KakaoCallbackView(APIView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
     def get(self, request):
         code = request.query_params.get("code")
         state = request.query_params.get("state")
